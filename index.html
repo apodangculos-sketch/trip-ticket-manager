@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trip Ticket Manager</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #0f62fe;
+    --blue-hover: #0353e9;
+    --blue-light: #d0e2ff;
+    --bg: #f4f4f4;
+    --card: #ffffff;
+    --border: #e0e0e0;
+    --text: #161616;
+    --muted: #6f6f6f;
+    --red: #da1e28;
+    --green: #198038;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 8px;
+  }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+  /* ── Header ── */
+  header { background: var(--blue); color: #fff; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: .3px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .btn-icon { background: transparent; border: none; cursor: pointer; color: #fff; padding: 6px; border-radius: 4px; display: flex; align-items: center; transition: background .15s; }
+  .btn-icon:hover { background: rgba(255,255,255,.15); }
+
+  /* ── Main layout ── */
+  main { max-width: 1280px; margin: 0 auto; padding: 24px 20px 100px; }
+
+  /* ── Dashboard cards ── */
+  .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 14px; }
+  .stat-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stat-icon svg { width: 22px; height: 22px; fill: var(--blue); }
+  .stat-info label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; display: block; margin-bottom: 4px; }
+  .stat-info .value { font-size: 22px; font-weight: 700; color: var(--text); }
+  .stat-info .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Charts section ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 15px; font-weight: 600; }
+  .btn-collapse { background: none; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--muted); transition: background .15s; }
+  .btn-collapse:hover { background: var(--border); }
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media(max-width:700px) { .charts-grid { grid-template-columns: 1fr; } }
+  .chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); overflow: hidden; }
+  .chart-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .chart-wrap { width: 100%; overflow-x: auto; }
+  svg.chart { display: block; }
+
+  /* ── Toolbar ── */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .search-input { flex: 1; min-width: 160px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; outline: none; transition: border .15s; }
+  .search-input:focus { border-color: var(--blue); }
+  input[type="date"] { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; outline: none; }
+  input[type="date"]:focus { border-color: var(--blue); }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: background .15s, opacity .15s; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-hover); }
+  .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger { background: #fff1f1; color: var(--red); border: 1px solid #ffc7c9; }
+  .btn-danger:hover { background: #ffd7d9; }
+
+  /* ── Table ── */
+  .table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead tr { background: #f0f4ff; }
+  th { padding: 12px 14px; text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #fafafa; }
+  tbody tr:hover { background: #f0f4ff; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .action-btns { display: flex; gap: 6px; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--text); transition: background .12s; }
+  .btn-sm:hover { background: var(--bg); }
+  .btn-sm.del:hover { background: #ffd7d9; border-color: #ffc7c9; color: var(--red); }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+
+  /* ── FAB ── */
+  .fab { position: fixed; bottom: 28px; right: 28px; width: 54px; height: 54px; background: var(--blue); color: #fff; border: none; border-radius: 50%; font-size: 26px; cursor: pointer; box-shadow: 0 4px 14px rgba(15,98,254,.45); display: flex; align-items: center; justify-content: center; transition: background .15s, transform .15s; z-index: 200; }
+  .fab:hover { background: var(--blue-hover); transform: scale(1.07); }
+
+  /* ── Modal ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 10px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,.18); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+  .modal-header h2 { font-size: 17px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--muted); line-height: 1; padding: 2px 6px; border-radius: 4px; }
+  .modal-close:hover { background: var(--bg); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:520px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .form-group label span.req { color: var(--red); }
+  .form-control { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; width: 100%; transition: border .15s; background: #fff; }
+  .form-control:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(15,98,254,.1); }
+  .form-control.error { border-color: var(--red); }
+  .err-msg { font-size: 11px; color: var(--red); }
+  .calc-hint { font-size: 11px; color: var(--muted); font-style: italic; }
+
+  /* ── Settings panel ── */
+  .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 400; align-items: flex-start; justify-content: flex-end; }
+  .settings-overlay.open { display: flex; }
+  .settings-panel { background: var(--card); width: 300px; height: 100%; padding: 24px; box-shadow: -4px 0 20px rgba(0,0,0,.12); overflow-y: auto; }
+  .settings-panel h2 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+  .setting-row { margin-bottom: 20px; }
+  .setting-row label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 8px; }
+  .toggle-group { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .toggle-group button { flex: 1; padding: 8px; border: none; background: transparent; cursor: pointer; font-size: 13px; transition: background .15s, color .15s; }
+  .toggle-group button.active { background: var(--blue); color: #fff; font-weight: 600; }
+  .settings-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #c6c6c6; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <h1>
+    <svg style="vertical-align:-3px;margin-right:8px" width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v2H6v-2H3v-2h3V9h2v2h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5S14.67 12 15.5 12s1.5.67 1.5 1.5S16.33 15 15.5 15zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 10 18.5 10s1.5.67 1.5 1.5S19.33 12 18.5 12z"/>
+    </svg>
+    Trip Ticket Manager
+  </h1>
+  <div class="header-right">
+    <button class="btn btn-primary" id="hdr-add-btn" style="height:36px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Add Trip
+    </button>
+    <button class="btn-icon" id="settings-btn" title="Settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settings-overlay">
+  <div class="settings-panel">
+    <button class="settings-close" id="settings-close">×</button>
+    <h2>Settings</h2>
+    <div class="setting-row">
+      <label>Distance Unit</label>
+      <div class="toggle-group" id="dist-toggle">
+        <button data-val="km" class="active">km</button>
+        <button data-val="mi">miles</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <label>Fuel Unit</label>
+      <div class="toggle-group" id="fuel-toggle">
+        <button data-val="L" class="active">Litres (L)</button>
+        <button data-val="gal">Gallons (gal)</button>
+      </div>
+    </div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)"/>
+    <button class="btn btn-danger" id="clear-data-btn" style="width:100%">Clear All Data</button>
+  </div>
+</div>
+
+<!-- Main -->
+<main>
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.38C18 2.06 15.94 0 13.38 0c-1.46 0-2.64.67-3.38 1.71L12 3l2-1c.28.65.44 1.37.44 2.62H6l-.44-1H2V5h2.35L6 9l1 4h1v2.5C8 16.33 8.67 17 9.5 17S11 16.33 11 15.5V13h2v2.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V13h1l1-4 .65-3H20V6zM9.5 6h7l-.66 3H10L9.5 6zM21 19H3c-1.1 0-2 .9-2 2v1h22v-1c0-1.1-.9-2-2-2z"/></svg></div>
+      <div class="stat-info"><label>Total Trips</label><div class="value" id="stat-trips">0</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
+      <div class="stat-info"><label>Total Mileage</label><div class="value" id="stat-mileage">0</div><div class="sub" id="stat-mileage-unit">km</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5z"/></svg></div>
+      <div class="stat-info"><label>Total Fuel</label><div class="value" id="stat-fuel">0</div><div class="sub" id="stat-fuel-unit">L</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
+      <div class="stat-info"><label>Avg Efficiency</label><div class="value" id="stat-eff">—</div><div class="sub" id="stat-eff-unit">km/L</div></div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div id="charts-section" style="margin-bottom:24px">
+    <div class="section-header">
+      <span class="section-title">Analytics</span>
+      <button class="btn-collapse" id="toggle-charts">Hide Charts</button>
+    </div>
+    <div id="charts-body" class="charts-grid">
+      <div class="chart-card">
+        <h3>Mileage per Trip</h3>
+        <div class="chart-wrap" id="chart-mileage-wrap"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Fuel Consumed per Trip</h3>
+        <div class="chart-wrap" id="chart-fuel-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="section-header" style="margin-bottom:12px">
+    <span class="section-title">Trip Records</span>
+    <button class="btn btn-secondary" id="export-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Export CSV
+    </button>
+  </div>
+  <div class="toolbar">
+    <input type="text" class="search-input" id="search-input" placeholder="Search by driver name, vehicle, origin, destination…" />
+    <input type="date" id="filter-from" title="Date from" />
+    <input type="date" id="filter-to" title="Date to" />
+    <button class="btn btn-secondary" id="clear-filter-btn">Clear</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="trips-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Driver</th>
+          <th>Vehicle / Plate</th>
+          <th>Origin → Destination</th>
+          <th>Odo Start</th>
+          <th>Odo End</th>
+          <th>Mileage</th>
+          <th>Fuel Added</th>
+          <th>Fuel Cost</th>
+          <th>Efficiency</th>
+          <th>Purpose / Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="trips-body"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="#c6c6c6" style="margin-bottom:12px"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.38C18 2.06 15.94 0 13.38 0c-1.46 0-2.64.67-3.38 1.71L12 3l2-1c.28.65.44 1.37.44 2.62H6l-.44-1H2V5h2.35L6 9l1 4h1v2.5C8 16.33 8.67 17 9.5 17S11 16.33 11 15.5V13h2v2.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V13h1l1-4 .65-3H20V6z"/></svg>
+      <p>No trips recorded yet. Click <strong>Add Trip</strong> to get started.</p>
+    </div>
+  </div>
+</main>
+
+<!-- FAB -->
+<button class="fab" id="fab-btn" title="Add Trip">+</button>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="trip-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Add Trip</h2>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="trip-form" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" class="form-control" id="f-date" required />
+            <span class="err-msg" id="err-date"></span>
+          </div>
+          <div class="form-group">
+            <label>Trip # <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-tripno" placeholder="e.g. TRP-001" required />
+            <span class="err-msg" id="err-tripno"></span>
+          </div>
+          <div class="form-group">
+            <label>Driver Name <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-driver" placeholder="Full name" required />
+            <span class="err-msg" id="err-driver"></span>
+          </div>
+          <div class="form-group">
+            <label>Vehicle / Plate No. <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-vehicle" placeholder="e.g. Toyota Hilux / ABC-123" required />
+            <span class="err-msg" id="err-vehicle"></span>
+          </div>
+          <div class="form-group">
+            <label>Origin <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-origin" placeholder="Departure location" required />
+            <span class="err-msg" id="err-origin"></span>
+          </div>
+          <div class="form-group">
+            <label>Destination <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-dest" placeholder="Arrival location" required />
+            <span class="err-msg" id="err-dest"></span>
+          </div>
+          <div class="form-group">
+            <label id="lbl-odo-start">Odometer Start <span class="req">*</span></label>
+            <input type="number" class="form-control" id="f-odo-start" placeholder="e.g. 15000" min="0" required />
+            <span class="err-msg" id="err-odo-start"></span>
+          </div>
+          <div class="form-group">
+            <label id="lbl-odo-end">Odometer End <span class="req">*</span></label>
+            <input type="number" class="form-control" id="f-odo-end" placeholder="e.g. 15350" min="0" required />
+            <span class="err-msg" id="err-odo-end"></span>
+            <span class="calc-hint" id="mileage-hint"></span>
+          </div>
+          <div class="form-group">
+            <label id="lbl-fuel">Fuel Added</label>
+            <input type="number" class="form-control" id="f-fuel" placeholder="e.g. 40" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label>Fuel Cost</label>
+            <input type="number" class="form-control" id="f-cost" placeholder="e.g. 2800.00" min="0" step="0.01" />
+          </div>
+          <div class="form-group full">
+            <label>Purpose / Notes</label>
+            <textarea class="form-control" id="f-notes" rows="3" placeholder="Delivery run, client visit, etc."></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-save">Save Trip</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────────────────
+let trips = [];
+let settings = { distUnit: 'km', fuelUnit: 'L' };
+let editingId = null;
+let chartsVisible = true;
+
+const SAMPLE_TRIPS = [
+  { id: uid(), tripNo: 'TRP-001', date: '2025-06-02', driver: 'Maria Santos', vehicle: 'Toyota Hilux / SJP-4421', origin: 'Makati City', dest: 'Quezon City', odoStart: 18200, odoEnd: 18547, fuel: 38.5, cost: 2695, notes: 'Delivery of office supplies' },
+  { id: uid(), tripNo: 'TRP-002', date: '2025-06-04', driver: 'Jose Reyes', vehicle: 'Isuzu D-Max / XMV-9903', origin: 'Quezon City', dest: 'Caloocan', odoStart: 31450, odoEnd: 31612, fuel: 18.0, cost: 1260, notes: 'Client site visit' },
+  { id: uid(), tripNo: 'TRP-003', date: '2025-06-06', driver: 'Ana Cruz', vehicle: 'Ford Ranger / BMN-2210', origin: 'Pasig City', dest: 'Laguna', odoStart: 52100, odoEnd: 52685, fuel: 55.2, cost: 3864, notes: 'Weekly route inspection' },
+  { id: uid(), tripNo: 'TRP-004', date: '2025-06-09', driver: 'Carlos Bautista', vehicle: 'Mitsubishi L300 / KLP-7751', origin: 'Manila', dest: 'Cavite', odoStart: 9800, odoEnd: 10073, fuel: 30.0, cost: 2100, notes: 'Goods transport — warehouse run' },
+  { id: uid(), tripNo: 'TRP-005', date: '2025-06-11', driver: 'Maria Santos', vehicle: 'Toyota Hilux / SJP-4421', origin: 'Quezon City', dest: 'Bulacan', odoStart: 18547, odoEnd: 18923, fuel: 42.0, cost: 2940, notes: 'Raw materials pickup' },
+];
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ── Persistence ─────────────────────────────────────────────────────────────
+function save() {
+  localStorage.setItem('ttm_trips', JSON.stringify(trips));
+  localStorage.setItem('ttm_settings', JSON.stringify(settings));
+}
+function load() {
+  try { const t = localStorage.getItem('ttm_trips'); if (t) trips = JSON.parse(t); } catch(e) {}
+  try { const s = localStorage.getItem('ttm_settings'); if (s) settings = { ...settings, ...JSON.parse(s) }; } catch(e) {}
+  if (!trips.length) { trips = SAMPLE_TRIPS; save(); }
+}
+
+// ── Units helpers ────────────────────────────────────────────────────────────
+function distLabel() { return settings.distUnit; }
+function fuelLabel() { return settings.fuelUnit; }
+function effLabel() { return `${distLabel()}/${fuelLabel()}`; }
+
+function calcMileage(start, end) {
+  const m = (end - start);
+  return m > 0 ? m : 0;
+}
+function calcEff(mileage, fuel) {
+  if (!fuel || fuel <= 0 || mileage <= 0) return null;
+  return (mileage / fuel).toFixed(2);
+}
+
+function fmtNum(n, dec = 1) {
+  if (n === null || n === undefined || n === '') return '—';
+  return Number(n).toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+// ── Filtering ────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const from = document.getElementById('filter-from').value;
+  const to = document.getElementById('filter-to').value;
+  return trips.filter(t => {
+    if (q && !`${t.driver} ${t.vehicle} ${t.origin} ${t.dest} ${t.tripNo}`.toLowerCase().includes(q)) return false;
+    if (from && t.date < from) return false;
+    if (to && t.date > to) return false;
+    return true;
+  }).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const filtered = getFiltered();
+  const totalMileage = filtered.reduce((s, t) => s + calcMileage(t.odoStart, t.odoEnd), 0);
+  const totalFuel = filtered.reduce((s, t) => s + (parseFloat(t.fuel) || 0), 0);
+  const effValues = filtered.map(t => {
+    const m = calcMileage(t.odoStart, t.odoEnd);
+    return calcEff(m, t.fuel);
+  }).filter(v => v !== null).map(Number);
+  const avgEff = effValues.length ? (effValues.reduce((a, b) => a + b, 0) / effValues.length).toFixed(2) : null;
+
+  document.getElementById('stat-trips').textContent = filtered.length;
+  document.getElementById('stat-mileage').textContent = fmtNum(totalMileage, 0);
+  document.getElementById('stat-mileage-unit').textContent = distLabel();
+  document.getElementById('stat-fuel').textContent = fmtNum(totalFuel, 1);
+  document.getElementById('stat-fuel-unit').textContent = fuelLabel();
+  document.getElementById('stat-eff').textContent = avgEff !== null ? fmtNum(avgEff, 2) : '—';
+  document.getElementById('stat-eff-unit').textContent = effLabel();
+}
+
+// ── Table ────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const filtered = getFiltered();
+  const tbody = document.getElementById('trips-body');
+  const empty = document.getElementById('empty-state');
+  tbody.innerHTML = '';
+  if (!filtered.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  filtered.forEach((t, i) => {
+    const mileage = calcMileage(t.odoStart, t.odoEnd);
+    const eff = calcEff(mileage, t.fuel);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><span class="badge badge-blue">${escHtml(t.tripNo)}</span></td>
+      <td>${escHtml(t.date)}</td>
+      <td>${escHtml(t.driver)}</td>
+      <td>${escHtml(t.vehicle)}</td>
+      <td>${escHtml(t.origin)} → ${escHtml(t.dest)}</td>
+      <td>${fmtNum(t.odoStart, 0)}</td>
+      <td>${fmtNum(t.odoEnd, 0)}</td>
+      <td><strong>${fmtNum(mileage, 0)}</strong> ${distLabel()}</td>
+      <td>${t.fuel ? fmtNum(t.fuel, 2) + ' ' + fuelLabel() : '—'}</td>
+      <td>${t.cost ? '$' + fmtNum(t.cost, 2) : '—'}</td>
+      <td>${eff !== null ? eff + ' ' + effLabel() : '—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${escHtml(t.notes || '')}">${escHtml(t.notes || '—')}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-sm" onclick="openEdit('${t.id}')">✏ Edit</button>
+          <button class="btn-sm del" onclick="deleteTrip('${t.id}')">🗑 Delete</button>
+        </div>
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Charts (pure SVG) ────────────────────────────────────────────────────────
+const CHART_W = 480, CHART_H = 200, PAD = { top: 20, right: 20, bottom: 50, left: 52 };
+const INNER_W = CHART_W - PAD.left - PAD.right;
+const INNER_H = CHART_H - PAD.top - PAD.bottom;
+
+function makeSVGChart(data, color, yLabel) {
+  if (!data.length) return '<p style="color:var(--muted);font-size:13px;padding:8px 0">No data to display</p>';
+
+  const maxVal = Math.max(...data.map(d => d.val), 1);
+  const barW = Math.min(36, (INNER_W / data.length) - 4);
+  const step = INNER_W / data.length;
+
+  let bars = '', xLabels = '', yLines = '';
+
+  // Y axis guides
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const yVal = (maxVal / ticks) * i;
+    const y = PAD.top + INNER_H - (INNER_H * i / ticks);
+    yLines += `<line x1="${PAD.left}" x2="${PAD.left + INNER_W}" y1="${y}" y2="${y}" stroke="#e0e0e0" stroke-dasharray="4,4"/>`;
+    yLines += `<text x="${PAD.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#6f6f6f">${fmtNum(yVal, yVal < 10 ? 1 : 0)}</text>`;
+  }
+
+  data.forEach((d, i) => {
+    const barH = INNER_H * (d.val / maxVal);
+    const x = PAD.left + step * i + step / 2 - barW / 2;
+    const y = PAD.top + INNER_H - barH;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${barH.toFixed(1)}" rx="3" fill="${color}" opacity="0.85">
+      <title>${d.label}: ${fmtNum(d.val, 2)}</title></rect>`;
+    // X labels — abbreviated
+    const lbl = d.label.length > 7 ? d.label.slice(0, 7) + '…' : d.label;
+    xLabels += `<text x="${(PAD.left + step * i + step / 2).toFixed(1)}" y="${CHART_H - 8}" text-anchor="middle" font-size="9.5" fill="#6f6f6f" transform="rotate(-30 ${(PAD.left + step * i + step / 2).toFixed(1)},${CHART_H - 8})">${escHtml(lbl)}</text>`;
+  });
+
+  return `<svg class="chart" viewBox="0 0 ${CHART_W} ${CHART_H}" width="${CHART_W}" height="${CHART_H}" xmlns="http://www.w3.org/2000/svg">
+    ${yLines}
+    <line x1="${PAD.left}" x2="${PAD.left}" y1="${PAD.top}" y2="${PAD.top + INNER_H}" stroke="#c6c6c6"/>
+    <line x1="${PAD.left}" x2="${PAD.left + INNER_W}" y1="${PAD.top + INNER_H}" y2="${PAD.top + INNER_H}" stroke="#c6c6c6"/>
+    <text x="14" y="${PAD.top + INNER_H / 2}" text-anchor="middle" font-size="10" fill="#6f6f6f" transform="rotate(-90 14,${PAD.top + INNER_H / 2})">${yLabel}</text>
+    ${bars}${xLabels}
+  </svg>`;
+}
+
+function renderCharts() {
+  const filtered = getFiltered();
+  const mileageData = filtered.map(t => ({ label: t.tripNo || t.date, val: calcMileage(t.odoStart, t.odoEnd) }));
+  const fuelData = filtered.map(t => ({ label: t.tripNo || t.date, val: parseFloat(t.fuel) || 0 }));
+  document.getElementById('chart-mileage-wrap').innerHTML = makeSVGChart(mileageData, '#0f62fe', distLabel());
+  document.getElementById('chart-fuel-wrap').innerHTML = makeSVGChart(fuelData, '#8a3ffc', fuelLabel());
+}
+
+// ── Full render ───────────────────────────────────────────────────────────────
+function render() {
+  renderDashboard();
+  renderTable();
+  renderCharts();
+}
+
+// ── Modal ────────────────────────────────────────────────────────────────────
+function openAdd() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Trip';
+  clearForm();
+  // Auto-suggest next trip number
+  const nums = trips.map(t => {
+    const m = t.tripNo && t.tripNo.match(/(\d+)$/);
+    return m ? parseInt(m[1]) : 0;
+  });
+  const next = (Math.max(0, ...nums) + 1).toString().padStart(3, '0');
+  document.getElementById('f-tripno').value = `TRP-${next}`;
+  // Set today's date
+  document.getElementById('f-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('trip-modal').classList.add('open');
+  document.getElementById('f-driver').focus();
+}
+
+function openEdit(id) {
+  const t = trips.find(x => x.id === id);
+  if (!t) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Trip';
+  clearForm();
+  document.getElementById('f-date').value = t.date || '';
+  document.getElementById('f-tripno').value = t.tripNo || '';
+  document.getElementById('f-driver').value = t.driver || '';
+  document.getElementById('f-vehicle').value = t.vehicle || '';
+  document.getElementById('f-origin').value = t.origin || '';
+  document.getElementById('f-dest').value = t.dest || '';
+  document.getElementById('f-odo-start').value = t.odoStart ?? '';
+  document.getElementById('f-odo-end').value = t.odoEnd ?? '';
+  document.getElementById('f-fuel').value = t.fuel ?? '';
+  document.getElementById('f-cost').value = t.cost ?? '';
+  document.getElementById('f-notes').value = t.notes || '';
+  updateMileageHint();
+  document.getElementById('trip-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('trip-modal').classList.remove('open');
+  editingId = null;
+}
+
+function clearForm() {
+  ['f-date','f-tripno','f-driver','f-vehicle','f-origin','f-dest','f-odo-start','f-odo-end','f-fuel','f-cost','f-notes']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; el && el.classList.remove('error'); });
+  ['err-date','err-tripno','err-driver','err-vehicle','err-origin','err-dest','err-odo-start','err-odo-end']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+  document.getElementById('mileage-hint').textContent = '';
+}
+
+function updateMileageHint() {
+  const s = parseFloat(document.getElementById('f-odo-start').value);
+  const e = parseFloat(document.getElementById('f-odo-end').value);
+  const hint = document.getElementById('mileage-hint');
+  if (!isNaN(s) && !isNaN(e) && e >= s) {
+    hint.textContent = `Mileage: ${fmtNum(e - s, 0)} ${distLabel()}`;
+  } else {
+    hint.textContent = '';
+  }
+}
+
+function validateForm() {
+  let ok = true;
+  const req = [
+    ['f-date', 'err-date', 'Date is required'],
+    ['f-tripno', 'err-tripno', 'Trip number is required'],
+    ['f-driver', 'err-driver', 'Driver name is required'],
+    ['f-vehicle', 'err-vehicle', 'Vehicle/Plate is required'],
+    ['f-origin', 'err-origin', 'Origin is required'],
+    ['f-dest', 'err-dest', 'Destination is required'],
+    ['f-odo-start', 'err-odo-start', 'Odometer start is required'],
+    ['f-odo-end', 'err-odo-end', 'Odometer end is required'],
+  ];
+  req.forEach(([fid, eid, msg]) => {
+    const el = document.getElementById(fid);
+    const err = document.getElementById(eid);
+    if (!el.value.trim()) { el.classList.add('error'); err.textContent = msg; ok = false; }
+    else { el.classList.remove('error'); err.textContent = ''; }
+  });
+  const s = parseFloat(document.getElementById('f-odo-start').value);
+  const e = parseFloat(document.getElementById('f-odo-end').value);
+  if (!isNaN(s) && !isNaN(e) && e < s) {
+    document.getElementById('f-odo-end').classList.add('error');
+    document.getElementById('err-odo-end').textContent = 'Must be ≥ odometer start';
+    ok = false;
+  }
+  return ok;
+}
+
+function saveTrip() {
+  if (!validateForm()) return;
+  const trip = {
+    id: editingId || uid(),
+    date: document.getElementById('f-date').value,
+    tripNo: document.getElementById('f-tripno').value.trim(),
+    driver: document.getElementById('f-driver').value.trim(),
+    vehicle: document.getElementById('f-vehicle').value.trim(),
+    origin: document.getElementById('f-origin').value.trim(),
+    dest: document.getElementById('f-dest').value.trim(),
+    odoStart: parseFloat(document.getElementById('f-odo-start').value),
+    odoEnd: parseFloat(document.getElementById('f-odo-end').value),
+    fuel: document.getElementById('f-fuel').value !== '' ? parseFloat(document.getElementById('f-fuel').value) : null,
+    cost: document.getElementById('f-cost').value !== '' ? parseFloat(document.getElementById('f-cost').value) : null,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+  if (editingId) {
+    const idx = trips.findIndex(t => t.id === editingId);
+    if (idx !== -1) trips[idx] = trip;
+  } else {
+    trips.push(trip);
+  }
+  save();
+  closeModal();
+  render();
+}
+
+function deleteTrip(id) {
+  if (!confirm('Delete this trip record? This cannot be undone.')) return;
+  trips = trips.filter(t => t.id !== id);
+  save();
+  render();
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+function syncSettingsUI() {
+  ['km','mi'].forEach(v => document.querySelector(`#dist-toggle [data-val="${v}"]`).classList.toggle('active', settings.distUnit === v));
+  ['L','gal'].forEach(v => document.querySelector(`#fuel-toggle [data-val="${v}"]`).classList.toggle('active', settings.fuelUnit === v));
+  // Update form labels
+  document.getElementById('lbl-odo-start').innerHTML = `Odometer Start (${distLabel()}) <span class="req">*</span>`;
+  document.getElementById('lbl-odo-end').innerHTML = `Odometer End (${distLabel()}) <span class="req">*</span>`;
+  document.getElementById('lbl-fuel').textContent = `Fuel Added (${fuelLabel()})`;
+}
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const filtered = getFiltered();
+  const cols = ['Trip #','Date','Driver','Vehicle/Plate','Origin','Destination','Odo Start','Odo End',
+    `Mileage (${distLabel()})`,`Fuel (${fuelLabel()})`, 'Fuel Cost', `Efficiency (${effLabel()})`, 'Notes'];
+  const rows = filtered.map(t => {
+    const m = calcMileage(t.odoStart, t.odoEnd);
+    const eff = calcEff(m, t.fuel);
+    return [t.tripNo, t.date, t.driver, t.vehicle, t.origin, t.dest, t.odoStart, t.odoEnd, m,
+      t.fuel ?? '', t.cost ?? '', eff ?? '', t.notes ?? ''].map(v => `"${String(v).replace(/"/g,'""')}"`);
+  });
+  const csv = [cols.map(c => `"${c}"`).join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'trips.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Event wiring ─────────────────────────────────────────────────────────────
+document.getElementById('fab-btn').addEventListener('click', openAdd);
+document.getElementById('hdr-add-btn').addEventListener('click', openAdd);
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-save').addEventListener('click', saveTrip);
+document.getElementById('trip-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+document.getElementById('f-odo-start').addEventListener('input', updateMileageHint);
+document.getElementById('f-odo-end').addEventListener('input', updateMileageHint);
+
+document.getElementById('search-input').addEventListener('input', render);
+document.getElementById('filter-from').addEventListener('change', render);
+document.getElementById('filter-to').addEventListener('change', render);
+document.getElementById('clear-filter-btn').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value = '';
+  render();
+});
+
+document.getElementById('export-btn').addEventListener('click', exportCSV);
+
+// Charts toggle
+document.getElementById('toggle-charts').addEventListener('click', () => {
+  chartsVisible = !chartsVisible;
+  document.getElementById('charts-body').style.display = chartsVisible ? '' : 'none';
+  document.getElementById('toggle-charts').textContent = chartsVisible ? 'Hide Charts' : 'Show Charts';
+});
+
+// Settings
+document.getElementById('settings-btn').addEventListener('click', () => {
+  document.getElementById('settings-overlay').classList.add('open');
+});
+document.getElementById('settings-close').addEventListener('click', () => {
+  document.getElementById('settings-overlay').classList.remove('open');
+});
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('settings-overlay').classList.remove('open');
+});
+
+document.getElementById('dist-toggle').addEventListener('click', e => {
+  const btn = e.target.closest('[data-val]'); if (!btn) return;
+  settings.distUnit = btn.dataset.val; save(); syncSettingsUI(); render();
+});
+document.getElementById('fuel-toggle').addEventListener('click', e => {
+  const btn = e.target.closest('[data-val]'); if (!btn) return;
+  settings.fuelUnit = btn.dataset.val; save(); syncSettingsUI(); render();
+});
+
+document.getElementById('clear-data-btn').addEventListener('click', () => {
+  if (!confirm('Delete ALL trip data? This cannot be undone.')) return;
+  trips = []; save(); render();
+  document.getElementById('settings-overlay').classList.remove('open');
+});
+
+// Keyboard: Escape closes modals
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    document.getElementById('settings-overlay').classList.remove('open');
+  }
+  if (e.key === 'Enter' && document.getElementById('trip-modal').classList.contains('open') && document.activeElement.tagName !== 'TEXTAREA') {
+    saveTrip();
+  }
+});
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+load();
+syncSettingsUI();
+render();
+</script>
+</body>
+</html>
